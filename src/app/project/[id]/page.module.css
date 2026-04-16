@@ -1,0 +1,136 @@
+.page {
+    position: relative;
+}
+
+.header {
+    background: linear-gradient(to bottom, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    border-bottom: 1px solid var(--border-subtle);
+    padding-top: 16px;
+    padding-bottom: 8px;
+}
+
+.headerContent {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.headerInfo {
+    flex: 1;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.breadcrumb a {
+    color: var(--text-secondary);
+    transition: color var(--transition-fast);
+}
+
+.breadcrumb a:hover {
+    color: var(--accent-secondary);
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+}
+
+.description {
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    max-width: 600px;
+}
+
+.stats {
+    display: flex;
+    gap: 32px;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.statValue {
+    font-size: 22px;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Map Section */
+.mapSection {
+    padding: 32px 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.mapHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.mapTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.mapSubtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.notFound {
+    text-align: center;
+    padding: 80px 0;
+}
+
+.notFound h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .headerContent {
+        flex-direction: column;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+
+    .stats {
+        gap: 20px;
+    }
+
+    .mapSection {
+        padding: 20px 16px;
+    }
+}

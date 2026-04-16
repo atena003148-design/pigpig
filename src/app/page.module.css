@@ -1,0 +1,200 @@
+.homeLayout {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* ===== Billboard (Hero) ===== */
+.billboard {
+    position: relative;
+    width: 100%;
+    height: 80vh;
+    min-height: 500px;
+    background-size: cover;
+    background-position: center;
+    margin-top: calc(-1 * var(--header-height));
+    padding-top: var(--header-height);
+    display: flex;
+    align-items: flex-end;
+}
+
+.billboardGradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom, 
+        rgba(0,0,0,0.5) 0%, 
+        rgba(0,0,0,0.1) 40%, 
+        var(--bg-primary) 100%
+    );
+    z-index: 1;
+}
+
+.billboardContent {
+    position: relative;
+    z-index: 2;
+    padding: 0 4vw 8vw;
+    width: 100%;
+    max-width: 800px;
+}
+
+.billboardTitle {
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.45);
+}
+
+.billboardDesc {
+    font-size: clamp(16px, 2vw, 22px);
+    color: #fff;
+    font-weight: 500;
+    line-height: 1.4;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.45);
+    margin-bottom: 30px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.billboardActions {
+    display: flex;
+    gap: 16px;
+}
+
+/* ===== Carousel Rows ===== */
+.rowsContainer {
+    position: relative;
+    z-index: 3;
+    margin-top: -6vw; 
+    padding-bottom: 50px;
+}
+
+.carouselSection {
+    margin-bottom: 3vw;
+}
+
+.carouselHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 0 4vw;
+    margin-bottom: 12px;
+}
+
+.carouselTitle {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.carouselLink {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-primary);
+    display: inline-flex;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all var(--transition-fast);
+}
+
+.carouselHeader:hover .carouselLink {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.chevron {
+    font-size: 16px;
+    margin-left: 2px;
+}
+
+.carouselContainer {
+    position: relative;
+}
+
+.carouselRow {
+    display: flex;
+    gap: 8px;
+    padding: 20px 4vw;
+    margin: -20px 0; /* Accommodate hover scale */
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 4vw;
+}
+
+.carouselRow::-webkit-scrollbar {
+    display: none;
+}
+
+.carouselRow {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Snap each card */
+.carouselRow > * {
+    scroll-snap-align: start;
+}
+
+/* Scroll Buttons */
+.scrollButton {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4vw;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 2.5vw;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scrollButton:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.carouselContainer:hover .scrollButton {
+    opacity: 1;
+}
+
+.scrollLeft {
+    left: 0;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.scrollRight {
+    right: 0;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .billboard {
+        height: 60vh;
+    }
+    
+    .rowsContainer {
+        margin-top: -20px;
+    }
+    
+    .carouselTitle {
+        font-size: 16px;
+    }
+    
+    .carouselRow {
+        gap: 6px;
+    }
+}
