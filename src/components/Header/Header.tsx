@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle/ThemeToggle';
+import { SignInButton, UserButton, useUser } from '@clerk/nextjs';
 import styles from './Header.module.css';
 
 export default function Header() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const { isSignedIn, isLoaded } = useUser();
 
     return (
         <header className={styles.header}>
@@ -63,14 +65,23 @@ export default function Header() {
                         <span>投稿</span>
                     </Link>
                     <ThemeToggle />
-                    <button className={styles.avatarBtn}>
-                        <div className={styles.avatar}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                        </div>
-                    </button>
+                    
+                    {isLoaded && (
+                        <>
+                            {isSignedIn ? (
+                                <>
+                                    <Link href="/mypage" style={{ textDecoration: 'none', color: 'var(--text-primary)', fontSize: '14px', fontWeight: 'bold' }}>マイページ</Link>
+                                    <UserButton />
+                                </>
+                            ) : (
+                                <SignInButton mode="modal">
+                                    <button className={styles.avatarBtn} style={{ padding: '0 12px', width: 'auto', fontSize: '14px', borderRadius: '20px', backgroundColor: 'var(--accent-primary, #fff)', color: 'var(--background-primary, #000)', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+                                        ログイン / 登録
+                                    </button>
+                                </SignInButton>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </header>

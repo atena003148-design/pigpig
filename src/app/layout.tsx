@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header/Header";
 import { ThemeProvider } from "@/components/ThemeProvider/ThemeProvider";
+import { ClerkProvider } from "@clerk/nextjs";
 
 export const metadata: Metadata = {
   title: "Rhizome - 物語を分岐させよう",
@@ -17,12 +18,14 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
-          <Header />
-          <main className="page-container">
-            {children}
-          </main>
-        </ThemeProvider>
+        <ClerkProvider>
+          <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
+            <Header />
+            <main className="page-container">
+              {children}
+            </main>
+          </ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   );
