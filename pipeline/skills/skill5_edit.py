@@ -172,19 +172,21 @@ def _compose_with_ffmpeg(
         f":alpha='if(between(t,0,0.3),t/0.3,if(between(t,{hook_end-0.3},{hook_end}),({hook_end}-t)/0.3,1))'"
     )
 
+    scale = (
+        f"scale={RENDER_WIDTH}:{RENDER_HEIGHT}:force_original_aspect_ratio=decrease,"
+        f"pad={RENDER_WIDTH}:{RENDER_HEIGHT}:(ow-iw)/2:(oh-ih)/2"
+    )
     cmd = [
         FFMPEG_BIN, "-y",
         "-i", video,
         "-i", audio,
         "-filter_complex",
-        f"[0:v]{drawtext}[v];"
+        f"[0:v]{scale},{drawtext}[v];"
         f"[1:a]aformat=sample_fmts=fltp:sample_rates=44100[a]",
         "-map", "[v]", "-map", "[a]",
         "-c:v", "libx264", "-preset", "fast", "-crf", "18",
         "-c:a", "aac", "-b:a", "192k",
         "-shortest",
-        "-vf", f"scale={RENDER_WIDTH}:{RENDER_HEIGHT}:force_original_aspect_ratio=decrease,"
-               f"pad={RENDER_WIDTH}:{RENDER_HEIGHT}:(ow-iw)/2:(oh-ih)/2",
         out,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
