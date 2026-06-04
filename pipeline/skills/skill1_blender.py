@@ -10,6 +10,7 @@ import os
 import subprocess
 import tempfile
 import textwrap
+import time
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -171,15 +172,30 @@ def _build_animated_script(glb_path: str, output_mp4: str, shots: list[CameraPar
 
 def render_static(glb_path: str, output_png: str | None = None) -> str:
     """
-    Render a front-facing still PNG of the GLB for Vision analysis.
-    Returns the path to the output PNG.
+    [MOCK] Skips Blender. Creates a minimal 1x1 white PNG as a stand-in.
     """
+    import struct, zlib
     if output_png is None:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         output_png = os.path.join(OUTPUT_DIR, "static_preview.png")
 
-    script = _build_static_script(glb_path, output_png)
-    _run_blender(script)
+    time.sleep(1)  # simulate render time
+
+    # Write a valid 1×1 white PNG without Pillow
+    def _make_png() -> bytes:
+        def chunk(name: bytes, data: bytes) -> bytes:
+            c = name + data
+            return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
+        ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+        raw = b"\x00\xff\xff\xff"  # filter byte + RGB white
+        idat = zlib.compress(raw)
+        return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
+
+    with open(output_png, "wb") as f:
+        f.write(_make_png())
+
+    import logging
+    logging.getLogger(__name__).info("[MOCK] Skill 1 static → %s", output_png)
     return output_png
 
 
@@ -189,24 +205,42 @@ def render_animated(
     output_mp4: str | None = None,
 ) -> str:
     """
-    Render a grey-model animation as MP4.
-    Each CameraParams in `shots` describes one cut's camera movement.
-    Returns the path to the output MP4.
+    [MOCK] Skips Blender. Creates a minimal valid MP4 (black 1-second clip).
     """
     if output_mp4 is None:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         output_mp4 = os.path.join(OUTPUT_DIR, "grey_model.mp4")
 
-    # Resolve presets → keyframes
-    for shot in shots:
-        if shot.preset and not shot.keyframes:
-            builder = _PRESETS.get(shot.preset)
-            if builder:
-                shot.keyframes = builder(shot.start_frame, shot.end_frame)
+    time.sleep(2)  # simulate render time
 
-    script = _build_animated_script(glb_path, output_mp4, shots)
-    _run_blender(script)
+    _write_dummy_mp4(output_mp4)
+
+    import logging
+    logging.getLogger(__name__).info("[MOCK] Skill 1 animated → %s", output_mp4)
     return output_mp4
+
+
+def _write_dummy_mp4(path: str) -> None:
+    """Create a 2-second black 1080×1920 MP4 using FFmpeg if available, else write empty file."""
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-f", "lavfi", "-i", "color=c=black:s=1080x1920:r=30:d=2",
+                "-f", "lavfi", "-i", "aevalsrc=0:r=44100:d=2",
+                "-c:v", "libx264", "-preset", "ultrafast", "-crf", "40",
+                "-c:a", "aac", "-b:a", "64k",
+                path,
+            ],
+            capture_output=True,
+            timeout=30,
+        )
+        if result.returncode == 0:
+            return
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    # Fallback: empty file (pipeline won't crash on path checks)
+    open(path, "wb").close()
 
 
 def _run_blender(script: str) -> None:

@@ -18,16 +18,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import openai
-
-from pipeline.config import OPENAI_API_KEY, OPENAI_MODEL_VISION, OUTPUT_DIR, RENDER_FPS
+from pipeline.config import OUTPUT_DIR, RENDER_FPS
 from pipeline.skills.skill1_blender import CameraParams, render_animated, render_static
 from pipeline.skills.skill2_vision import analyse_and_blueprint
 from pipeline.skills.skill3_vid2vid import apply_texture
 from pipeline.skills.skill4_audio import generate_audio
 from pipeline.skills.skill5_edit import compose_final_video
 
-openai.api_key = OPENAI_API_KEY
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
@@ -68,27 +65,16 @@ class PipelineState:
 
 def director_plan(blueprint: dict) -> dict:
     """
-    Ask the LLM Director to validate and finalise the execution plan.
-    Returns dict with keys: camera_shots, mood.
+    [MOCK] Returns the blueprint's camera_shots and mood directly without calling OpenAI.
+    In production this calls GPT-4o to validate and adjust the plan.
     """
-    log.info("Director: evaluating blueprint …")
-    response = openai.chat.completions.create(
-        model=OPENAI_MODEL_VISION,
-        messages=[
-            {"role": "system", "content": _DIRECTOR_SYSTEM},
-            {
-                "role": "user",
-                "content": _DIRECTOR_USER.format(
-                    blueprint=json.dumps(blueprint, ensure_ascii=False, indent=2)
-                ),
-            },
-        ],
-        max_tokens=1024,
-        temperature=0.3,
-    )
-    raw = response.choices[0].message.content.strip()
-    plan = json.loads(raw)
-    log.info("Director plan: mood=%s, shots=%d", plan.get("mood"), len(plan.get("camera_shots", [])))
+    log.info("Director: [MOCK] validating blueprint locally …")
+    time.sleep(1)  # simulate LLM latency
+    plan = {
+        "camera_shots": blueprint["camera_shots"],
+        "mood": blueprint.get("mood", "cinematic epic"),
+    }
+    log.info("Director plan: mood=%s, shots=%d", plan["mood"], len(plan["camera_shots"]))
     return plan
 
 

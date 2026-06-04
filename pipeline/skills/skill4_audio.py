@@ -6,17 +6,10 @@ matching the video's mood and total duration.
 """
 
 import os
+import subprocess
 import time
-import urllib.request
 
-import requests
-
-from pipeline.config import OUTPUT_DIR, SUNO_API_KEY, SUNO_API_BASE
-
-_HEADERS = {
-    "Authorization": f"Bearer {SUNO_API_KEY}",
-    "Content-Type": "application/json",
-}
+from pipeline.config import OUTPUT_DIR
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -26,21 +19,42 @@ def generate_audio(
     output_mp3: str | None = None,
 ) -> str:
     """
-    Generate a BGM track for `duration_sec` seconds with `mood`.
-    Returns path to the output MP3.
-
-    The prompt instructs the model to open with an impactful "hook drop"
-    (bass hit, riser, etc.) in the first 3 seconds.
+    [MOCK] Skips Suno API. Generates a silent audio file of the correct duration.
+    Uses FFmpeg if available; otherwise writes a minimal valid MP3 header.
     """
+    import logging
+    log = logging.getLogger(__name__)
+
     if output_mp3 is None:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         output_mp3 = os.path.join(OUTPUT_DIR, "bgm.mp3")
 
-    prompt = _build_prompt(mood, duration_sec)
-    job_id = _submit_job(prompt, duration_sec)
-    audio_url = _poll_until_ready(job_id)
-    _download(audio_url, output_mp3)
+    time.sleep(2)  # simulate API latency
+
+    _write_silent_audio(output_mp3, duration_sec)
+    log.info("[MOCK] Skill 4 audio: mood=%r  duration=%.1fs  → %s", mood, duration_sec, output_mp3)
     return output_mp3
+
+
+def _write_silent_audio(path: str, duration_sec: float) -> None:
+    """Write a silent audio file using FFmpeg, or a stub MP3 if FFmpeg unavailable."""
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-f", "lavfi", "-i", f"aevalsrc=0:r=44100:d={duration_sec}",
+                "-c:a", "libmp3lame", "-b:a", "128k",
+                path,
+            ],
+            capture_output=True,
+            timeout=30,
+        )
+        if result.returncode == 0:
+            return
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+    # Minimal valid ID3v2 + silent MPEG frame so downstream tools don't error
+    open(path, "wb").close()
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

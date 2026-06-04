@@ -7,17 +7,8 @@ on Replicate, and returns the textured video MP4 path.
 
 import os
 import time
-import urllib.request
 
-import replicate
-
-from pipeline.config import (
-    OUTPUT_DIR,
-    REPLICATE_API_TOKEN,
-    REPLICATE_VID2VID_MODEL,
-)
-
-os.environ["REPLICATE_API_TOKEN"] = REPLICATE_API_TOKEN
+from pipeline.config import OUTPUT_DIR
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
@@ -25,37 +16,33 @@ def apply_texture(
     grey_video_path: str,
     visual_prompt: str,
     output_mp4: str | None = None,
-    strength: float = 0.75,        # how much the prompt overrides the input
+    strength: float = 0.75,
     num_inference_steps: int = 20,
 ) -> str:
     """
-    Run Vid2Vid on `grey_video_path` guided by `visual_prompt`.
-    Returns path to the textured MP4.
-
-    `strength` (0–1): lower = preserves shape better, higher = more creative.
+    [MOCK] Skips Replicate. Copies the grey model video as the 'textured' output.
+    Simulates the latency of a real Vid2Vid API call.
     """
+    import logging, shutil
+    log = logging.getLogger(__name__)
+
     if output_mp4 is None:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         output_mp4 = os.path.join(OUTPUT_DIR, "textured.mp4")
 
-    with open(grey_video_path, "rb") as f:
-        video_bytes = f.read()
+    time.sleep(3)  # simulate API round-trip
 
-    # Replicate client accepts file-like objects or URLs for video inputs
-    output = replicate.run(
-        REPLICATE_VID2VID_MODEL,
-        input={
-            "video": video_bytes,
-            "prompt": visual_prompt,
-            "negative_prompt": "blurry, low quality, watermark, text, distorted geometry",
-            "strength": strength,
-            "num_inference_steps": num_inference_steps,
-        },
+    if os.path.isfile(grey_video_path) and os.path.getsize(grey_video_path) > 0:
+        shutil.copy2(grey_video_path, output_mp4)
+    else:
+        # Grey video might be an empty placeholder — just copy it
+        shutil.copy2(grey_video_path, output_mp4) if os.path.isfile(grey_video_path) else open(output_mp4, "wb").close()
+
+    log.info(
+        "[MOCK] Skill 3 Vid2Vid: prompt=%r  → %s",
+        visual_prompt[:60] + "...",
+        output_mp4,
     )
-
-    # `output` is typically a URL string pointing to the generated video
-    video_url = output if isinstance(output, str) else output[0]
-    _download(video_url, output_mp4)
     return output_mp4
 
 

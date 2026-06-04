@@ -41,20 +41,36 @@ def compose_final_video(
 ) -> str:
     """
     Produce the final vertical short video.
+    Falls back gracefully when inputs are mock stubs (empty files).
     Returns path to the output MP4.
     """
+    import logging
+    log = logging.getLogger(__name__)
+
     if output_mp4 is None:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         output_mp4 = os.path.join(OUTPUT_DIR, "final_video.mp4")
 
-    if _remotion_available():
+    video_ok = os.path.isfile(textured_video_path) and os.path.getsize(textured_video_path) > 0
+    audio_ok = os.path.isfile(audio_path) and os.path.getsize(audio_path) > 0
+
+    if _remotion_available() and video_ok and audio_ok:
         return _compose_with_remotion(
             textured_video_path, audio_path, hook_text, camera_shots, output_mp4
         )
+    elif _ffmpeg_available() and video_ok and audio_ok:
+        return _compose_with_ffmpeg(textured_video_path, audio_path, hook_text, output_mp4)
+    elif _ffmpeg_available() and video_ok:
+        # No real audio — add silent track
+        return _compose_video_only(textured_video_path, hook_text, output_mp4)
     else:
-        return _compose_with_ffmpeg(
-            textured_video_path, audio_path, hook_text, output_mp4
+        # Full mock fallback: just copy/rename the video stub
+        log.warning(
+            "[MOCK] Skill 5: FFmpeg unavailable or inputs are stubs. "
+            "Writing placeholder final video."
         )
+        shutil.copy2(textured_video_path, output_mp4) if video_ok else open(output_mp4, "wb").close()
+        return output_mp4
 
 
 # ── Remotion path ─────────────────────────────────────────────────────────────
@@ -196,3 +212,19 @@ def _ffmpeg_encode_frames(frames_dir: str, audio: str, out: str, _total_sec: flo
 
 def _remotion_available() -> bool:
     return shutil.which("npx") is not None and os.path.isdir(REMOTION_PROJECT_DIR)
+
+
+def _ffmpeg_available() -> bool:
+    return shutil.which(FFMPEG_BIN) is not None
+
+
+def _compose_video_only(video: str, hook_text: str, out: str) -> str:
+    """FFmpeg compose with generated silent audio."""
+    import tempfile
+    silent = os.path.join(tempfile.gettempdir(), "silent_bgm.mp3")
+    subprocess.run(
+        ["ffmpeg", "-y", "-f", "lavfi", "-i", "aevalsrc=0:r=44100:d=60",
+         "-c:a", "libmp3lame", "-b:a", "128k", silent],
+        capture_output=True,
+    )
+    return _compose_with_ffmpeg(video, silent, hook_text, out)
