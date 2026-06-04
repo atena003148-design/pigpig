@@ -6,17 +6,22 @@
     "dev": "node dev.js",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "remotion:preview": "remotion preview remotion/index.ts",
+    "remotion:render": "remotion render remotion/index.ts ViralReel pipeline/output/final_reel.mp4"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.2",
+    "@remotion/cli": "^4.0.472",
+    "@remotion/media-utils": "^4.0.472",
     "@supabase/supabase-js": "^2.103.0",
     "@vercel/postgres": "^0.10.0",
     "@xyflow/react": "^12.10.2",
     "next": "16.2.3",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "remotion": "^4.0.472"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
